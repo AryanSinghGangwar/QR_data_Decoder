@@ -1,66 +1,107 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useState, useRef } from "react";
+import { QrReader } from "react-qr-reader";
 
 export default function Home() {
+  const [data, setData] = useState("");
+  const [scanned, setScanned] = useState(false);
+  const scannedRef = useRef(false);
+
+  const beep = () => {
+    const audio = new Audio("/beep.mp3");
+    audio.play();
+  };
+
+  const handleScan = (result, error) => {
+    if (!!result && !scannedRef.current) {
+      scannedRef.current = true;
+      const text = result?.text;
+      setData(text);
+      setScanned(true);
+      beep();
+    }
+  };
+
+  const nextScan = () => {
+    setData("");
+    setScanned(false);
+    scannedRef.current = false;
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div style={styles.container}>
+      <h1 style={styles.title}>🎟 QR SCANNER</h1>
+
+      {!scanned && (
+        <div style={styles.scanner}>
+          <QrReader
+            constraints={{ facingMode: "environment" }}
+            onResult={handleScan}
+            style={{ width: "100%" }}
+          />
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      )}
+
+      {scanned && (
+        <div style={styles.resultBox}>
+          <h2>Scanned Data:</h2>
+          <div style={styles.data}>{data}</div>
+
+          <button onClick={nextScan} style={styles.button}>
+            Next Scan
+          </button>
         </div>
-      </main>
+      )}
     </div>
   );
 }
+
+const styles = {
+  container: {
+    height: "100vh",
+    background: "black",
+    color: "white",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "sans-serif",
+  },
+  title: {
+    fontSize: "28px",
+    marginBottom: "20px",
+    color: "red",
+  },
+  scanner: {
+    width: "320px",
+    border: "3px solid red",
+    borderRadius: "20px",
+    overflow: "hidden",
+  },
+  resultBox: {
+    textAlign: "center",
+    background: "#111",
+    padding: "30px",
+    borderRadius: "20px",
+    width: "350px",
+  },
+  data: {
+    marginTop: "15px",
+    background: "#000",
+    padding: "15px",
+    borderRadius: "10px",
+    color: "#00ff9c",
+    wordBreak: "break-all",
+  },
+  button: {
+    marginTop: "20px",
+    padding: "12px 25px",
+    fontSize: "16px",
+    background: "red",
+    border: "none",
+    borderRadius: "10px",
+    color: "white",
+    cursor: "pointer",
+  },
+};
